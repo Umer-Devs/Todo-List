@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animated Todo List</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 500px;
+            backdrop-filter: blur(10px);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        h1 {
+            color: #1a1a1a;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 3px;
+            bottom: -5px;
+            left: 0;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            animation: underline 1s forwards;
+        }
+
+        @keyframes underline {
+            to {
+                width: 100%;
+            }
+        }
+
+        .input-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .todo-input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .todo-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .add-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .add-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300%;
+            height: 300%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%) rotate(35deg);
+            transition: transform 0.5s;
+        }
+
+        .add-btn:hover::after {
+            transform: translate(-50%, -50%) rotate(35deg) translateX(100%);
+        }
+
+        .filters {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #e5e7eb;
+            color: #4b5563;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .todo-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            background: rgba(249, 250, 251, 0.8);
+            border-radius: 0.5rem;
+            gap: 0.75rem;
+            animation: slideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: top;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .todo-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            transform: scaleY(0);
+            transition: transform 0.3s;
+        }
+
+        .todo-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .todo-item.completed {
+            opacity: 0.7;
+        }
+
+        .todo-item.deleting {
+            animation: slideOut 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .checkbox {
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .checkbox.checked {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            transform: scale(1.1);
+        }
+
+        .checkbox.checked::after {
+            content: '✓';
+            position: absolute;
+            color: white;
+            font-size: 0.8rem;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            animation: checkmark 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes checkmark {
+            from {
+                transform: translate(-50%, -50%) scale(0) rotate(-45deg);
+            }
+            to {
+                transform: translate(-50%, -50%) scale(1) rotate(0);
+            }
+        }
+
+        .todo-text {
+            flex: 1;
+            font-size: 1rem;
+            color: #1f2937;
+            transition: all 0.3s;
+        }
+
+        .todo-text.completed {
+            text-decoration: line-through;
+            color: #6b7280;
+            transform: translateX(10px);
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            padding: 0.25rem;
+            opacity: 0;
+            transition: all 0.3s;
+            transform: translateX(20px);
+        }
+
+        .todo-item:hover .delete-btn {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #6b7280;
+            padding: 2rem;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes slideOut {
+            to {
+                opacity: 0;
+                transform: translateX(100%) scale(0.9);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Add shimmer effect on hover */
+        .todo-item:hover {
+            background: linear-gradient(
+                120deg,
+                rgba(249, 250, 251, 0.8) 0%,
+                rgba(249, 250, 251, 0.9) 50%,
+                rgba(249, 250, 251, 0.8) 100%
+            );
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            to {
+                background-position: -200% 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Todo List</h1>
+        <div class="input-container">
+            <input type="text" class="todo-input" placeholder="Add a new task...">
+            <button class="add-btn">Add</button>
+        </div>
+        <div class="filters">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="active">Active</button>
+            <button class="filter-btn" data-filter="completed">Completed</button>
+        </div>
+        <div class="todo-list"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            class TodoList {
+                constructor() {
+                    this.todos = [];
+                    this.filter = 'all';
+                    this.setupEventListeners();
+                    this.render();
+                }
+
+                setupEventListeners() {
+                    const input = document.querySelector('.todo-input');
+                    const addBtn = document.querySelector('.add-btn');
+                    const filters = document.querySelector('.filters');
+
+                    addBtn.addEventListener('click', () => this.addTodo());
+                    input.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') this.addTodo();
+                    });
+
+                    filters.addEventListener('click', (e) => {
+                        if (e.target.classList.contains('filter-btn')) {
+                            this.setFilter(e.target.dataset.filter);
+                        }
+                    });
+                }
+
+                addTodo() {
+                    const input = document.querySelector('.todo-input');
+                    const text = input.value.trim();
+                    
+                    if (!text) {
+                        input.focus();
+                        return;
+                    }
+                    
+                    this.todos.push({
+                        id: Date.now(),
+                        text,
+                        completed: false
+                    });
+                    input.value = '';
+                    input.focus();
+                    this.render();
+                }
+
+                toggleTodo(id) {
+                    this.todos = this.todos.map(todo =>
+                        todo.id === id ? { ...todo, completed: !todo.completed } : todo
+                    );
+                    this.render();
+                }
+
+                async deleteTodo(id) {
+                    const todoElement = document.querySelector(`[data-id="${id}"]`);
+                    if (todoElement) {
+                        todoElement.classList.add('deleting');
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        this.todos = this.todos.filter(todo => todo.id !== id);
+                        this.render();
+                    }
+                }
+
+                setFilter(newFilter) {
+                    this.filter = newFilter;
+                    document.querySelectorAll('.filter-btn').forEach(btn => {
+                        btn.classList.toggle('active', btn.dataset.filter === newFilter);
+                    });
+                    this.render();
+                }
+
+                getFilteredTodos() {
+                    switch (this.filter) {
+                        case 'active':
+                            return this.todos.filter(todo => !todo.completed);
+                        case 'completed':
+                            return this.todos.filter(todo => todo.completed);
+                        default:
+                            return this.todos;
+                    }
+                }
+
+                render() {
+                    const todoList = document.querySelector('.todo-list');
+                    const filteredTodos = this.getFilteredTodos();
+
+                    if (filteredTodos.length === 0) {
+                        todoList.innerHTML = `
+                            <div class="empty-state">
+                                No ${this.filter === 'all' ? '' : this.filter} tasks found
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    todoList.innerHTML = filteredTodos.map(todo => `
+                        <div class="todo-item ${todo.completed ? 'completed' : ''}" data-id="${todo.id}">
+                            <div class="checkbox ${todo.completed ? 'checked' : ''}"
+                                 onclick="window.todoList.toggleTodo(${todo.id})">
+                            </div>
+                            <span class="todo-text ${todo.completed ? 'completed' : ''}">
+                                ${todo.text}
+                            </span>
+                            <button class="delete-btn" onclick="window.todoList.deleteTodo(${todo.id})">✕</button>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            // Assign to window to make it globally accessible
+            window.todoList = new TodoList();
+        });
+    </script>
+</body>
+</html>
